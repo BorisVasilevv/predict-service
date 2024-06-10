@@ -3,7 +3,7 @@ from quart import Quart, request, jsonify
 from quart_cors import cors, route_cors
 from hypercorn.config import Config
 from hypercorn.asyncio import serve
-from db_query_functions import add_doctor
+from db_query_functions import add_doctor, delete_doctor_by_id
 
 import logging
 from logging import INFO
@@ -20,6 +20,7 @@ def __config_logger():
                         format=FORMAT,
                         handlers=(file_log, console_log),
                         datefmt='%d-%m-%y - %H:%M:%S')
+
 
 # Настройка CORS
 app = cors(
@@ -45,6 +46,18 @@ async def add_doctor_route():
     except Exception as e:
         logger.error({'error': str(e)})
         return jsonify({'error': str(e)}), 400
+
+
+@app.route('/delete_doctor/<int:doctor_id>', methods=['DELETE'])
+async def delete_doctor(doctor_id):
+    try:
+        result = delete_doctor_by_id(doctor_id)
+        if result:
+            return jsonify({"message": "Doctor deleted successfully"}), 200
+        else:
+            return jsonify({"message": "Doctor not found"}), 404
+    except Exception as e:
+        return jsonify({"message": f"An error occurred: {str(e)}"}), 500
 
 if __name__ == '__main__':
     __config_logger()
