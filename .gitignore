@@ -162,3 +162,9 @@ cython_debug/
 #.idea/
 
 .idea/
+alembic.ini
+config/enviroment.py
+/migration/alembic/versions
+alembic.ini
+/migration/alembic/versions
+/migration/alembic/versions
