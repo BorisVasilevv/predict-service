@@ -3,57 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Doctor</title>
+    <title>Edit Doctor</title>
 </head>
 <body>
-    <h1>Add Doctor</h1>
-    <form id="addDoctorForm" onsubmit="addDoctor(event)">
+    <h1>Edit Doctor</h1>
+    <form id="editDoctorForm" onsubmit="editDoctor(event)">
         <label for="first_name">First Name:</label><br>
-        <input type="text" id="first_name" name="first_name" required><br><br>
+        <input type="text" id="first_name" name="first_name" value="{{ doctor.first_name }}" required><br><br>
 
         <label for="last_name">Last Name:</label><br>
-        <input type="text" id="last_name" name="last_name" required><br><br>
+        <input type="text" id="last_name" name="last_name" value="{{ doctor.last_name }}" required><br><br>
 
         <label for="patronymic">Patronymic:</label><br>
-        <input type="text" id="patronymic" name="patronymic"><br><br>
+        <input type="text" id="patronymic" name="patronymic" value="{{ doctor.patronymic }}"><br><br>
 
         <label for="phone_number">Phone Number:</label><br>
-        <input type="tel" id="phone_number" name="phone_number" required><br><br>
+        <input type="tel" id="phone_number" name="phone_number" value="{{ doctor.phone_number }}" required><br><br>
 
         <label for="email">Email:</label><br>
-        <input type="email" id="email" name="email"><br><br>
+        <input type="email" id="email" name="email" value="{{ doctor.email }}"><br><br>
 
         <fieldset>
             <legend>Specializations:</legend>
             {% for specialization in all_specializations %}
-                <input type="checkbox" id="specialization{{ specialization.id }}" name="specializations" value="{{ specialization.id }}">
+                <input type="checkbox" id="specialization{{ specialization.id }}" name="specializations" value="{{ specialization.id }}"
+                       {% if specialization.id in doctor_specializations %}checked{% endif %}>
                 <label for="specialization{{ specialization.id }}">{{ specialization.name }}</label><br>
             {% endfor %}
         </fieldset>
 
         <label for="street">Street:</label><br>
-        <input type="text" id="street" name="street" required><br><br>
+        <input type="text" id="street" name="street" value="{{ doctor.address.street }}" required><br><br>
 
         <label for="house">House:</label><br>
-        <input type="text" id="house" name="house" required><br><br>
+        <input type="text" id="house" name="house" value="{{ doctor.address.house }}" required><br><br>
 
         <label for="flat">Flat:</label><br>
-        <input type="text" id="flat" name="flat"><br><br>
+        <input type="text" id="flat" name="flat" value="{{ doctor.address.flat }}"><br><br>
 
         <label for="city">City:</label><br>
-        <input type="text" id="city" name="city" required><br><br>
+        <input type="text" id="city" name="city" value="{{ doctor.address.city }}" required><br><br>
 
         <label for="region">Region:</label><br>
-        <input type="text" id="region" name="region"><br><br>
+        <input type="text" id="region" name="region" value="{{ doctor.address.region }}"><br><br>
 
         <label for="zip_code">Zip Code:</label><br>
-        <input type="text" id="zip_code" name="zip_code" required><br><br>
+        <input type="text" id="zip_code" name="zip_code" value="{{ doctor.address.zip_code }}" required><br><br>
 
         <input type="submit" value="Submit">
     </form>
 
     <script>
-        async function addDoctor(event) {
+        async function editDoctor(event) {
             event.preventDefault();
 
             const data = {
@@ -74,8 +75,8 @@
             };
 
             try {
-                const response = await fetch('/add_doctor', {
-                    method: 'POST',
+                const response = await fetch(`/edit_doctor/${doctorId}`, {
+                    method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
                     },
@@ -83,12 +84,15 @@
                 });
                 const result = await response.json();
                 alert(result.message);
-                window.location.href = '/doctors'; // Перенаправление на страницу списка врачей после успешного добавления
+                window.location.href = '/doctors'; // Перенаправление на страницу списка врачей после успешного редактирования
             } catch (error) {
                 console.error('Error:', error);
-                alert('An error occurred while adding the doctor.');
+                alert('An error occurred while editing the doctor.');
             }
         }
+
+        // Установить doctorId для использования в fetch запросе
+        const doctorId = {{ doctor.id }};
     </script>
 </body>
 </html>
