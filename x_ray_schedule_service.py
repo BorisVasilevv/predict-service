@@ -1,14 +1,14 @@
 import asyncio
-from quart import Quart, request, jsonify
+from quart import Quart, request, jsonify, render_template
 from quart_cors import cors, route_cors
 from hypercorn.config import Config
 from hypercorn.asyncio import serve
-from db_query_functions import add_doctor, delete_doctor_by_id
+from db_query_functions import add_doctor, delete_doctor_by_id, get_all_doctors
 
 import logging
 from logging import INFO
 
-app = Quart(__name__)
+app = Quart(__name__, template_folder='view/templates')
 logger = logging.getLogger()
 
 
@@ -40,12 +40,17 @@ async def add_doctor_route():
         data = await request.get_json()
         result = add_doctor(data)
         if 'error' in result:
-            logger.info(result)
+            logger.error(result)
             return jsonify(result), 400
         return jsonify(result), 201
     except Exception as e:
-        logger.error({'error': str(e)})
+        logger.error(str(e))
         return jsonify({'error': str(e)}), 400
+
+
+@app.route('/add_doctor', methods=['GET'])
+async def add_doctor_form():
+    return await render_template('add_doctor.html')
 
 
 @app.route('/delete_doctor/<int:doctor_id>', methods=['DELETE'])
@@ -55,9 +60,17 @@ async def delete_doctor(doctor_id):
         if result:
             return jsonify({"message": "Doctor deleted successfully"}), 200
         else:
+            logger.error("Doctor not found")
             return jsonify({"message": "Doctor not found"}), 404
     except Exception as e:
+        logger.error(f"An error occurred: {str(e)}")
         return jsonify({"message": f"An error occurred: {str(e)}"}), 500
+
+
+@app.route('/doctors', methods=['GET'])
+async def list_doctors():
+    doctors = get_all_doctors()
+    return await render_template('doctors.html', doctors=doctors)
 
 if __name__ == '__main__':
     __config_logger()

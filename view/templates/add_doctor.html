@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Doctor</title>
+</head>
+<body>
+    <h1>Add Doctor</h1>
+    <form id="addDoctorForm" onsubmit="addDoctor(event)">
+        <label for="first_name">First Name:</label><br>
+        <input type="text" id="first_name" name="first_name" required><br><br>
+
+        <label for="last_name">Last Name:</label><br>
+        <input type="text" id="last_name" name="last_name" required><br><br>
+
+        <label for="patronymic">Patronymic:</label><br>
+        <input type="text" id="patronymic" name="patronymic"><br><br>
+
+        <label for="phone_number">Phone Number:</label><br>
+        <input type="tel" id="phone_number" name="phone_number" required><br><br>
+
+        <label for="email">Email:</label><br>
+        <input type="email" id="email" name="email"><br><br>
+
+        <fieldset>
+            <legend>Specializations:</legend>
+            <input type="checkbox" id="specialization1" name="specializations" value="КТ">
+            <label for="specialization1">КТ</label><br>
+            <input type="checkbox" id="specialization2" name="specializations" value="МРТ">
+            <label for="specialization2">МРТ</label><br>
+            <input type="checkbox" id="specialization3" name="specializations" value="РГ">
+            <label for="specialization3">РГ</label><br>
+            <input type="checkbox" id="specialization4" name="specializations" value="ФЛГ">
+            <label for="specialization4">ФЛГ</label><br>
+            <input type="checkbox" id="specialization5" name="specializations" value="ММГ">
+            <label for="specialization5">ММГ</label><br>
+            <input type="checkbox" id="specialization6" name="specializations" value="Денситометр">
+            <label for="specialization6">Денситометр</label><br>
+        </fieldset>
+
+        <label for="street">Street:</label><br>
+        <input type="text" id="street" name="street" required><br><br>
+
+        <label for="house">House:</label><br>
+        <input type="text" id="house" name="house" required><br><br>
+
+        <label for="flat">Flat:</label><br>
+        <input type="text" id="flat" name="flat"><br><br>
+
+        <label for="city">City:</label><br>
+        <input type="text" id="city" name="city" required><br><br>
+
+        <label for="region">Region:</label><br>
+        <input type="text" id="region" name="region"><br><br>
+
+        <label for="zip_code">Zip Code:</label><br>
+        <input type="text" id="zip_code" name="zip_code" required><br><br>
+
+        <input type="submit" value="Submit">
+    </form>
+
+    <script>
+        async function addDoctor(event) {
+            event.preventDefault();
+
+            const data = {
+                first_name: document.getElementById('first_name').value,
+                last_name: document.getElementById('last_name').value,
+                patronymic: document.getElementById('patronymic').value,
+                phone_number: document.getElementById('phone_number').value,
+                email: document.getElementById('email').value,
+                specializations: Array.from(document.querySelectorAll('input[name="specializations"]:checked')).map(checkbox => checkbox.value),
+                address: {
+                    street: document.getElementById('street').value,
+                    house: document.getElementById('house').value,
+                    flat: document.getElementById('flat').value,
+                    city: document.getElementById('city').value,
+                    region: document.getElementById('region').value,
+                    zip_code: document.getElementById('zip_code').value
+                }
+            };
+
+            try {
+                const response = await fetch('/add_doctor', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                alert(result.message);
+                window.location.href = '/doctors'; // Перенаправление на страницу списка врачей после успешного добавления
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while adding the doctor.');
+            }
+        }
+    </script>
+</body>
+</html>

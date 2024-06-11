@@ -69,3 +69,12 @@ def delete_doctor_by_id(doctor_id: int):
         raise e
     finally:
         session.close()
+
+
+def get_all_doctors():
+    session = Session()
+    try:
+        doctors = session.query(Doctor).all()
+        return doctors
+    finally:
+        session.close()
