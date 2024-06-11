@@ -1,3 +1,5 @@
+from sqlalchemy.orm import joinedload
+
 from models import Session, Doctor, Specialization, Address
 
 
@@ -34,7 +36,7 @@ def add_doctor(data):
         )
 
         # Добавляем специализации
-        specialization_objects = session.query(Specialization).filter(Specialization.name.in_(specializations)).all()
+        specialization_objects = session.query(Specialization).filter(Specialization.id.in_(specializations)).all()
         doctor.specializations = specialization_objects
 
         # Сохраняем в базу данных
@@ -71,10 +73,81 @@ def delete_doctor_by_id(doctor_id: int):
         session.close()
 
 
+def get_doctor_by_id(doctor_id: int):
+    session = Session()
+    try:
+        doctor = session.query(Doctor).options(joinedload(Doctor.specializations), joinedload(Doctor.address)).filter(Doctor.id == doctor_id).first()
+        return doctor
+    finally:
+        session.close()
+
+
 def get_all_doctors():
     session = Session()
     try:
         doctors = session.query(Doctor).all()
         return doctors
+    finally:
+        session.close()
+
+
+def update_doctor(doctor_id: int, data):
+    session = Session()
+    try:
+        doctor = session.query(Doctor).filter(Doctor.id == doctor_id).first()
+        if not doctor:
+            return {'error': 'Doctor not found'}
+
+        doctor.first_name = data['first_name']
+        doctor.last_name = data['last_name']
+        doctor.patronymic = data.get('patronymic')
+        doctor.phone_number = data['phone_number']
+        doctor.email = data.get('email')
+
+        # Обновление специализаций
+        specializations = data['specializations']
+        specialization_objects = session.query(Specialization).filter(Specialization.id.in_(specializations)).all()
+        doctor.specializations = specialization_objects
+
+        # Обновление адреса
+        address_data = data['address']
+        address = doctor.address
+        address.street = address_data['street']
+        address.house = address_data['house']
+        address.flat = address_data['flat']
+        address.city = address_data['city']
+        address.region = address_data['region']
+        address.zip_code = address_data['zip_code']
+
+        session.commit()
+        return {'message': 'Doctor updated successfully'}
+    except Exception as e:
+        session.rollback()
+        raise e
+    finally:
+        session.close()
+
+
+def get_all_specializations():
+    session = Session()
+    try:
+        specializations = session.query(Specialization).all()
+        return specializations
+    finally:
+        session.close()
+
+
+def get_specializations_by_doctor_id(doctor_id):
+    session = Session()
+
+    try:
+        # Находим доктора по его ID
+        doctor = session.query(Doctor).filter_by(id=doctor_id).first()
+        if doctor:
+            # Если доктор найден, возвращаем ID его специализаций
+            return [specialization.id for specialization in doctor.specializations]
+        else:
+            # Если доктор не найден, возвращаем пустой список
+            return []
     finally:
         session.close()

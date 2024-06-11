@@ -48,6 +48,7 @@
                     <td>{{ doctor.phone_number }}</td>
                     <td>{{ doctor.email }}</td>
                     <td>
+                        <button onclick="editDoctor({{ doctor.id }})">Edit</button>
                         <button onclick="deleteDoctor({{ doctor.id }})">Delete</button>
                     </td>
                 </tr>
@@ -76,6 +77,11 @@
         // Функция для перехода на страницу добавления врача
         function addDoctor() {
             window.location.href = '/add_doctor';
+        }
+
+        // Функция для перехода на страницу редактирования врача
+        function editDoctor(doctorId) {
+            window.location.href = `/edit_doctor/${doctorId}`;
         }
     </script>
 </body>
