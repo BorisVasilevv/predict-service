@@ -3,10 +3,13 @@ from quart import Quart, request, jsonify, render_template
 from quart_cors import cors, route_cors
 from hypercorn.config import Config
 from hypercorn.asyncio import serve
-from db_query_functions import add_doctor, delete_doctor_by_id, get_all_doctors
+from db_query_functions import add_doctor, delete_doctor_by_id, get_all_doctors, get_doctor_by_id, update_doctor, \
+    get_all_specializations, get_specializations_by_doctor_id
 
 import logging
 from logging import INFO
+
+from models import Session, Specialization
 
 app = Quart(__name__, template_folder='view/templates')
 logger = logging.getLogger()
@@ -50,7 +53,8 @@ async def add_doctor_route():
 
 @app.route('/add_doctor', methods=['GET'])
 async def add_doctor_form():
-    return await render_template('add_doctor.html')
+    all_specializations = get_all_specializations()
+    return await render_template('add_doctor.html', all_specializations=all_specializations)
 
 
 @app.route('/delete_doctor/<int:doctor_id>', methods=['DELETE'])
@@ -71,6 +75,25 @@ async def delete_doctor(doctor_id):
 async def list_doctors():
     doctors = get_all_doctors()
     return await render_template('doctors.html', doctors=doctors)
+
+
+@app.route('/edit_doctor/<int:doctor_id>', methods=['GET', 'PUT'])
+async def edit_doctor_route(doctor_id):
+    if request.method == 'GET':
+        doctor = get_doctor_by_id(doctor_id)
+        all_specializations = get_all_specializations()
+        doctor_specializations = get_specializations_by_doctor_id(doctor_id)
+        print(doctor_specializations)
+        return await render_template('edit_doctor.html', doctor=doctor, all_specializations=all_specializations, doctor_specializations=doctor_specializations)
+
+    if request.method == 'PUT':
+        data = await request.get_json()
+        try:
+            result = await update_doctor(doctor_id, data)
+            return jsonify(result), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 400
+
 
 if __name__ == '__main__':
     __config_logger()
