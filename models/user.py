@@ -12,6 +12,3 @@ class User(Base):
     role_id = Column(Integer, ForeignKey('role.id'), nullable=False)
 
     role = relationship("Role", back_populates="users")
-
-    def has_permission(self, permission):
-        return permission in self.role.permissions.split(',')
