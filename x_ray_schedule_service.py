@@ -4,12 +4,17 @@ from quart_auth import QuartAuth, AuthUser, login_user, logout_user, login_requi
 from quart_cors import cors, route_cors
 from hypercorn.config import Config
 from hypercorn.asyncio import serve
-from db_query_functions import add_doctor, delete_doctor_by_id, get_all_doctors, get_doctor_by_id, update_doctor, \
-    get_all_specializations, get_specializations_by_doctor_id
 
 import logging
 from logging import INFO
+
+from auth.CustomUserAuth import CustomAuthUser
+from auth.role_required import role_required
 from config.enviroment import secret_key
+from db_function.doctor_function import add_doctor, delete_doctor_by_id, get_all_doctors, get_doctor_by_id, \
+    update_doctor
+from db_function.specialization_function import get_all_specializations, get_specializations_by_doctor_id
+from db_function.user_function import authenticate_user
 
 app = Quart(__name__, template_folder='view/templates')
 quart_auth = QuartAuth(app)
@@ -37,9 +42,33 @@ app = cors(
 )
 
 
-# @route_cors(allow_origin="*")  # Разрешаем все источники для этого маршрута
-# Маршрут для добавления нового врача
+@app.route('/login', methods=['GET', 'POST'])
+async def login():
+    if request.method == 'GET':
+        return await render_template('login.html')
+
+    elif request.method == 'POST':
+        data = await request.form
+        username = data.get('username')
+        password = data.get('password')
+
+        user = await authenticate_user(username, password)
+        if user:
+            auth_user = CustomAuthUser(user.id)  # Используем CustomAuthUser
+            login_user(auth_user)
+            return jsonify({"message": "Login successful"}), 200
+        return jsonify({"message": "Invalid credentials"}), 401
+
+
+@app.route('/logout', methods=['POST'])
+@login_required
+async def logout():
+    logout_user()
+    return jsonify({"message": "Logout successful"}), 200
+
+
 @app.route('/add_doctor', methods=['POST', 'GET'])
+@role_required('admin')
 async def add_doctor_route():
     if request.method == 'GET':
         all_specializations = get_all_specializations()
