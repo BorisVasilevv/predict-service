@@ -1,5 +1,6 @@
 import asyncio
-from quart import Quart, request, jsonify, render_template
+from quart import Quart, request, jsonify, render_template, redirect, url_for
+from quart_auth import QuartAuth, AuthUser, login_user, logout_user, login_required, current_user
 from quart_cors import cors, route_cors
 from hypercorn.config import Config
 from hypercorn.asyncio import serve
@@ -8,10 +9,11 @@ from db_query_functions import add_doctor, delete_doctor_by_id, get_all_doctors,
 
 import logging
 from logging import INFO
-
-from models import Session, Specialization
+from config.enviroment import secret_key
 
 app = Quart(__name__, template_folder='view/templates')
+quart_auth = QuartAuth(app)
+app.secret_key = secret_key
 logger = logging.getLogger()
 
 
@@ -37,24 +39,23 @@ app = cors(
 
 # @route_cors(allow_origin="*")  # Разрешаем все источники для этого маршрута
 # Маршрут для добавления нового врача
-@app.route('/add_doctor', methods=['POST'])
+@app.route('/add_doctor', methods=['POST', 'GET'])
 async def add_doctor_route():
-    try:
-        data = await request.get_json()
-        result = add_doctor(data)
-        if 'error' in result:
-            logger.error(result)
-            return jsonify(result), 400
-        return jsonify(result), 201
-    except Exception as e:
-        logger.error(str(e))
-        return jsonify({'error': str(e)}), 400
+    if request.method == 'GET':
+        all_specializations = get_all_specializations()
+        return await render_template('add_doctor.html', all_specializations=all_specializations)
 
-
-@app.route('/add_doctor', methods=['GET'])
-async def add_doctor_form():
-    all_specializations = get_all_specializations()
-    return await render_template('add_doctor.html', all_specializations=all_specializations)
+    if request.method == 'POST':
+        try:
+            data = await request.get_json()
+            result = add_doctor(data)
+            if 'error' in result:
+                logger.error(result)
+                return jsonify(result), 400
+            return jsonify(result), 201
+        except Exception as e:
+            logger.error(str(e))
+            return jsonify({'error': str(e)}), 400
 
 
 @app.route('/delete_doctor/<int:doctor_id>', methods=['DELETE'])
