@@ -1,6 +1,7 @@
 from sqlalchemy.orm import joinedload
 from werkzeug.security import check_password_hash
-from models import Session, User
+from models.base import Session
+from models.user import User
 
 
 def authenticate_user(username, password):
