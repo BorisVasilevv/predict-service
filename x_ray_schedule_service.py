@@ -14,7 +14,7 @@ from config.environment import secret_key
 from db_function.doctor_function import add_doctor, delete_doctor_by_id, get_all_doctors, get_doctor_by_id, \
     update_doctor
 from db_function.specialization_function import get_all_specializations, get_specializations_by_doctor_id
-from db_function.user_function import authenticate_user, create_user, is_password_strong
+from db_function.user_function import authenticate_user, create_user
 
 app = Quart(__name__, template_folder='view/templates')
 quart_auth = QuartAuth(app)
@@ -49,15 +49,11 @@ async def register():
         username = data['username']
         password = data['password']
 
-        # Проверка сложности пароля
-        if not is_password_strong(password):
-            await flash('Пароль слишком простой. Пароль должен содержать минимум 8 символов, включая буквы и цифры')
+        try:
+            create_user(username, password)
+        except ValueError as e:
+            await flash(str(e))
             return await render_template('register.html')
-
-        # Вызовите функцию для создания нового пользователя
-        create_user(username, password)
-
-        return redirect(url_for('login'))  # Предположим, что у вас есть маршрут для входа
 
     return await render_template('register.html')
 

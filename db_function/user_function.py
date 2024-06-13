@@ -1,6 +1,4 @@
-import re
-
-from sqlalchemy.orm import joinedload
+from sqlalchemy.exc import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
 from models.base import Session
 from models.user import User
@@ -31,16 +29,11 @@ def create_user(username: str, password: str):
     # Создайте сессию и добавьте нового пользователя
     session = Session()
     new_user = User(username=username, password=hashed_password)
-    session.add(new_user)
-    session.commit()
-    session.close()
-
-
-def is_password_strong(password: str) -> bool:
-    if len(password) < 8:
-        return False
-    if not re.search(r'[A-Za-z]', password):
-        return False
-    if not re.search(r'[0-9]', password):
-        return False
-    return True
+    try:
+        session.add(new_user)
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise ValueError("Пользователь с таким именем уже существует.")
+    finally:
+        session.close()
