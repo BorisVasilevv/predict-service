@@ -1,6 +1,6 @@
-from sqlalchemy.orm import joinedload
-
-from models import Session, Doctor, Specialization
+from models.base import Session
+from models.doctor import Doctor
+from models.specialization import Specialization
 
 
 def get_all_specializations():

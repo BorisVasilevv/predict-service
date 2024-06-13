@@ -1,9 +1,8 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 
-from .address import Address
-from .base import Base
-from .association import doctor_specialization
+from models.base import Base
+from models.association import doctor_specialization
 
 
 class Doctor(Base):

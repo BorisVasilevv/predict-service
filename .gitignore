@@ -163,5 +163,5 @@ cython_debug/
 
 .idea/
 alembic.ini
-config/enviroment.py
+config/environment.py
 /migration/alembic/versions

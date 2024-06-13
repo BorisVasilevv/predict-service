@@ -10,7 +10,7 @@ from logging import INFO
 
 from auth.CustomUserAuth import CustomAuthUser
 from auth.role_required import role_required
-from config.enviroment import secret_key
+from config.environment import secret_key
 from db_function.doctor_function import add_doctor, delete_doctor_by_id, get_all_doctors, get_doctor_by_id, \
     update_doctor
 from db_function.specialization_function import get_all_specializations, get_specializations_by_doctor_id
@@ -52,7 +52,7 @@ async def login():
         username = data.get('username')
         password = data.get('password')
 
-        user = await authenticate_user(username, password)
+        user = authenticate_user(username, password)
         if user:
             auth_user = CustomAuthUser(user.id)  # Используем CustomAuthUser
             login_user(auth_user)
