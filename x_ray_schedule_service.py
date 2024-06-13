@@ -1,5 +1,5 @@
 import asyncio
-from quart import Quart, request, jsonify, render_template, redirect, url_for
+from quart import Quart, request, jsonify, render_template, redirect, url_for, flash
 from quart_auth import QuartAuth, AuthUser, login_user, logout_user, login_required, current_user
 from quart_cors import cors, route_cors
 from hypercorn.config import Config
@@ -14,7 +14,7 @@ from config.environment import secret_key
 from db_function.doctor_function import add_doctor, delete_doctor_by_id, get_all_doctors, get_doctor_by_id, \
     update_doctor
 from db_function.specialization_function import get_all_specializations, get_specializations_by_doctor_id
-from db_function.user_function import authenticate_user
+from db_function.user_function import authenticate_user, create_user, is_password_strong
 
 app = Quart(__name__, template_folder='view/templates')
 quart_auth = QuartAuth(app)
@@ -40,6 +40,26 @@ app = cors(
     allow_methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"],  # Разрешенные методы
     allow_headers=["Content-Type", "Authorization"],  # Разрешенные заголовки
 )
+
+
+@app.route('/register', methods=['GET', 'POST'])
+async def register():
+    if request.method == 'POST':
+        data = await request.form
+        username = data['username']
+        password = data['password']
+
+        # Проверка сложности пароля
+        if not is_password_strong(password):
+            await flash('Пароль слишком простой. Пароль должен содержать минимум 8 символов, включая буквы и цифры')
+            return await render_template('register.html')
+
+        # Вызовите функцию для создания нового пользователя
+        create_user(username, password)
+
+        return redirect(url_for('login'))  # Предположим, что у вас есть маршрут для входа
+
+    return await render_template('register.html')
 
 
 @app.route('/login', methods=['GET', 'POST'])
