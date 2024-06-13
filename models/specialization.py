@@ -12,3 +12,8 @@ class Specialization(Base):
 
     # Связь с таблицей докторов
     doctors = relationship("Doctor", secondary=doctor_specialization, back_populates="specializations")
+
+    examinations = relationship(
+        "Examination",
+        back_populates="specialization"
+    )
