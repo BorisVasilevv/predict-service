@@ -24,6 +24,10 @@
         tr:nth-child(even) {
             background-color: #f2f2f2;
         }
+
+        .logout-button {
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -48,6 +52,7 @@
                     <td>{{ doctor.phone_number }}</td>
                     <td>{{ doctor.email }}</td>
                     <td>
+                        <button onclick="editDoctor({{ doctor.id }})">Edit</button>
                         <button onclick="deleteDoctor({{ doctor.id }})">Delete</button>
                     </td>
                 </tr>
@@ -55,6 +60,7 @@
         </tbody>
     </table>
     <button onclick="addDoctor()">Add Doctor</button>
+    <button class="logout-button" onclick="logout()">Logout</button>
 
     <script>
         // Функция для отправки запроса на удаление врача
@@ -76,6 +82,24 @@
         // Функция для перехода на страницу добавления врача
         function addDoctor() {
             window.location.href = '/add_doctor';
+        }
+
+        // Функция для перехода на страницу редактирования врача
+        function editDoctor(doctorId) {
+            window.location.href = `/edit_doctor/${doctorId}`;
+        }
+
+        // Функция для отправки запроса на выход из системы
+        async function logout() {
+            try {
+                const response = await fetch('/logout', { method: 'POST' });
+                const data = await response.json();
+                alert(data.message);
+                window.location.href = '/doctors'; // Перенаправление на страницу входа после выхода
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while logging out.');
+            }
         }
     </script>
 </body>
