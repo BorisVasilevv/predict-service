@@ -1,4 +1,6 @@
-from models import User, Role, Session
+from models.user import User
+from models.role import Role
+from models.base import Session
 from werkzeug.security import generate_password_hash
 
 
