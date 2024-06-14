@@ -1,4 +1,6 @@
 import asyncio
+import secrets
+
 from quart import Quart, request, jsonify, render_template, redirect, url_for, flash
 from quart_auth import QuartAuth, AuthUser, login_user, logout_user, login_required, current_user
 from quart_cors import cors, route_cors
@@ -13,8 +15,12 @@ from auth.role_required import role_required
 from config.environment import secret_key
 from db_function.doctor_function import add_doctor, delete_doctor_by_id, get_all_doctors, get_doctor_by_id, \
     update_doctor
+from db_function.email_function import send_confirmation_email
 from db_function.specialization_function import get_all_specializations, get_specializations_by_doctor_id
-from db_function.user_function import authenticate_user, create_user
+from db_function.user_function import authenticate_user, create_pending_user
+from models.base import Session
+from models.pending_user import PendingUser
+from models.user import User
 
 app = Quart(__name__, template_folder='view/templates')
 quart_auth = QuartAuth(app)
@@ -48,14 +54,34 @@ async def register():
         data = await request.form
         username = data['username']
         password = data['password']
+        email = data['email']
 
         try:
-            create_user(username, password)
+            token = create_pending_user(username, password, email)
+            await send_confirmation_email(email, token)
+            await flash('Пожалуйста, подтвердите вашу регистрацию, перейдя по ссылке в отправленном письме.')
+            return await render_template('register.html')
         except ValueError as e:
             await flash(str(e))
             return await render_template('register.html')
 
     return await render_template('register.html')
+
+
+@app.route('/confirm/<token>')
+async def confirm_email(token):
+    session = Session()
+    pending_user = session.query(PendingUser).filter_by(token=token).first()
+    if pending_user:
+        new_user = User(username=pending_user.username, password=pending_user.password, email=pending_user.email)
+        session.add(new_user)
+        session.delete(pending_user)
+        session.commit()
+        await flash('Ваша учетная запись успешно подтверждена.')
+        return redirect(url_for('login'))
+    else:
+        await flash('Неверный или истекший токен.')
+        return redirect(url_for('register'))
 
 
 @app.route('/login', methods=['GET', 'POST'])
