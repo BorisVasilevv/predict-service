@@ -1,5 +1,5 @@
-from sqlalchemy.orm import joinedload
-from werkzeug.security import check_password_hash
+from sqlalchemy.exc import IntegrityError
+from werkzeug.security import check_password_hash, generate_password_hash
 from models.base import Session
 from models.user import User
 
@@ -19,5 +19,21 @@ def user_has_role(user_id, role_name):
         if user:
             return user.role.name == role_name if user.role else False
         return False
+    finally:
+        session.close()
+
+
+def create_user(username: str, password: str):
+    hashed_password = generate_password_hash(password)
+
+    # Создайте сессию и добавьте нового пользователя
+    session = Session()
+    new_user = User(username=username, password=hashed_password)
+    try:
+        session.add(new_user)
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise ValueError("Пользователь с таким именем уже существует.")
     finally:
         session.close()
