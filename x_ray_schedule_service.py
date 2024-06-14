@@ -1,5 +1,5 @@
 import asyncio
-from quart import Quart, request, jsonify, render_template, redirect, url_for
+from quart import Quart, request, jsonify, render_template, redirect, url_for, flash
 from quart_auth import QuartAuth, AuthUser, login_user, logout_user, login_required, current_user
 from quart_cors import cors, route_cors
 from hypercorn.config import Config
@@ -10,11 +10,11 @@ from logging import INFO
 
 from auth.CustomUserAuth import CustomAuthUser
 from auth.role_required import role_required
-from config.enviroment import secret_key
+from config.environment import secret_key
 from db_function.doctor_function import add_doctor, delete_doctor_by_id, get_all_doctors, get_doctor_by_id, \
     update_doctor
 from db_function.specialization_function import get_all_specializations, get_specializations_by_doctor_id
-from db_function.user_function import authenticate_user
+from db_function.user_function import authenticate_user, create_user
 
 app = Quart(__name__, template_folder='view/templates')
 quart_auth = QuartAuth(app)
@@ -42,6 +42,22 @@ app = cors(
 )
 
 
+@app.route('/register', methods=['GET', 'POST'])
+async def register():
+    if request.method == 'POST':
+        data = await request.form
+        username = data['username']
+        password = data['password']
+
+        try:
+            create_user(username, password)
+        except ValueError as e:
+            await flash(str(e))
+            return await render_template('register.html')
+
+    return await render_template('register.html')
+
+
 @app.route('/login', methods=['GET', 'POST'])
 async def login():
     if request.method == 'GET':
@@ -52,7 +68,7 @@ async def login():
         username = data.get('username')
         password = data.get('password')
 
-        user = await authenticate_user(username, password)
+        user = authenticate_user(username, password)
         if user:
             auth_user = CustomAuthUser(user.id)  # Используем CustomAuthUser
             login_user(auth_user)

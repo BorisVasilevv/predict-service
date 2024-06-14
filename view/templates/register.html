@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Регистрация</title>
+    <style>
+        .error { color: red; }
+        .error-list { margin-top: 20px; }
+    </style>
+    <script>
+        function validatePassword() {
+            var password = document.getElementById('password').value;
+            var errorMessage = '';
+
+            if (password.length < 8) {
+                errorMessage += 'Пароль должен содержать минимум 8 символов.\n';
+            }
+            if (!/\d/.test(password)) {
+                errorMessage += 'Пароль должен содержать хотя бы одну цифру.\n';
+            }
+
+            if (errorMessage) {
+                alert(errorMessage);
+                return false;
+            }
+            return true;
+        }
+    </script>
+</head>
+<body>
+    <h2>Регистрация</h2>
+
+    <form action="/register" method="post" onsubmit="return validatePassword()">
+        <label for="username">Имя пользователя:</label>
+        <input type="text" id="username" name="username" required>
+        <br>
+        <label for="password">Пароль:</label>
+        <input type="password" id="password" name="password" required>
+        <br>
+        <button type="submit">Зарегистрироваться</button>
+    </form>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="error-list">
+                {% for category, message in messages %}
+                    <p class="error">{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+</body>
+</html>

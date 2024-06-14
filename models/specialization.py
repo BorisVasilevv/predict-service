@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
-from .base import Base
-from .association import doctor_specialization
+from models.base import Base
+from models.association import doctor_specialization
 
 
 class Specialization(Base):
