@@ -10,6 +10,7 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     username = Column(String(50), unique=True, nullable=False)
     password = Column(String(200), nullable=False)
+    email = Column(String(50), unique=True, nullable=False)
     role_id = Column(Integer, ForeignKey('role.id'), nullable=True)
 
     role = relationship("Role", back_populates="users")

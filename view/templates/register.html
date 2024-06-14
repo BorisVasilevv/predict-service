@@ -9,6 +9,7 @@
     <script>
         function validatePassword() {
             var password = document.getElementById('password').value;
+            var email = document.getElementById('email').value;
             var errorMessage = '';
 
             if (password.length < 8) {
@@ -16,6 +17,10 @@
             }
             if (!/\d/.test(password)) {
                 errorMessage += 'Пароль должен содержать хотя бы одну цифру.\n';
+            }
+            var emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+            if (!emailPattern.test(email)) {
+                errorMessage += 'Введите корректный адрес электронной почты.\n';
             }
 
             if (errorMessage) {
@@ -32,6 +37,9 @@
     <form action="/register" method="post" onsubmit="return validatePassword()">
         <label for="username">Имя пользователя:</label>
         <input type="text" id="username" name="username" required>
+        <br>
+        <label for="email">Электронная почта:</label>
+        <input type="email" id="email" name="email" required>
         <br>
         <label for="password">Пароль:</label>
         <input type="password" id="password" name="password" required>
