@@ -1,16 +1,15 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, ForeignKey
 from sqlalchemy.orm import relationship
-
-from .address import Address
-from .base import Base
-from .association import doctor_specialization
+from base import Base
 
 
 class ScheduleRecord(Base):
-    __tablename__ = 'schedule_record'
+    class ScheduleRecord(Base):
+        __tablename__ = 'schedule_record'
+        id = Column(Integer, primary_key=True)
+        doctor_id = Column(Integer, ForeignKey('doctor.id'))
+        examination_id = Column(Integer, ForeignKey('examination.id'))
+        doctor = relationship("Doctor", back_populates="schedule_records")
+        examination = relationship("Examination", back_populates="schedule_record")
 
-    id = Column(Integer, primary_key=True)
-    doctor_id = Column(Integer, ForeignKey('examination.id'))
 
-    # Связь с таблицей адресов
-    address = relationship("Address", back_populates="doctor")
