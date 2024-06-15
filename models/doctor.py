@@ -1,8 +1,11 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
-
 from models.base import Base
 from models.association import doctor_specialization
+from models.contingency import Contingency
+from models.schedule_record import ScheduleRecord
+from models.specialization import Specialization
+from models.address import Address
 
 
 class Doctor(Base):
@@ -22,7 +25,11 @@ class Doctor(Base):
     # Связь с таблицей специализаций
     specializations = relationship("Specialization", secondary=doctor_specialization, back_populates="doctors")
 
+    contingencies = relationship("Contingency", back_populates="doctor")
+
     schedule_records = relationship(
         "ScheduleRecord",
         back_populates="doctor"
     )
+
+
