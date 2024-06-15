@@ -13,10 +13,13 @@ from logging import INFO
 from auth.CustomUserAuth import CustomAuthUser
 from auth.role_required import role_required
 from config.environment import secret_key
-from db_function.email_function import send_confirmation_email, confirm_pending_user
+from db_function.email_function import send_confirmation_email, confirm_pending_user, send_reset_password_email
 from db_function.specialization_function import get_all_specializations, get_specializations_by_user_id
 from db_function.user_function import authenticate_user, create_pending_user, get_all_users, assign_role_to_user, \
-    get_all_roles, remove_role_from_user, delete_user_by_id, get_user_by_id, update_user
+    get_all_roles, remove_role_from_user, delete_user_by_id, get_user_by_id, update_user, get_user_by_email, \
+    update_user_password, save_confirmation_code
+from models.base import Session
+from models.user import User
 
 app = Quart(__name__, template_folder='view/templates')
 quart_auth = QuartAuth(app)
@@ -142,7 +145,47 @@ async def login():
         return jsonify({"message": "Invalid credentials"}), 401
 
 
-@app.route('/logout', methods=['POST'])
+@app.route('/forgot-password', methods=['GET', 'POST'])
+async def forgot_password():
+    if request.method == 'POST':
+        data = await request.form
+        email = data['email']
+
+        user = get_user_by_email(email)
+        if user:
+            confirmation_code = secrets.token_urlsafe(6)  # Генерируем код подтверждения
+            save_confirmation_code(email, confirmation_code)
+            await send_reset_password_email(email, confirmation_code)
+            await flash('Код подтверждения отправлен на вашу электронную почту.')
+            return redirect(url_for('reset_password'))
+        else:
+            await flash('Пользователь с таким email не найден.')
+            return await render_template('forgot_password.html')
+
+    return await render_template('forgot_password.html')
+
+
+@app.route('/reset-password', methods=['GET', 'POST'])
+async def reset_password():
+    if request.method == 'POST':
+        data = await request.form
+        email = data['email']
+        confirmation_code = data['confirmation_code']
+        new_password = data['new_password']
+
+        user = get_user_by_email(email)
+        if user and user.confirmation_code == confirmation_code:
+            update_user_password(email, new_password)
+            await flash('Пароль успешно сброшен. Теперь вы можете войти с новым паролем.')
+            return redirect(url_for('login'))
+        else:
+            await flash('Неверный код подтверждения или email.')
+            return await render_template('reset_password.html')
+
+    return await render_template('reset_password.html')
+
+
+@app.route('/logout', methods=['GET'])
 @login_required
 async def logout():
     logout_user()
