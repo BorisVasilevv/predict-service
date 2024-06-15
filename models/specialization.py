@@ -11,4 +11,4 @@ class Specialization(Base):
     name = Column(String(50))
 
     # Связь с таблицей докторов
-    doctors = relationship("Doctor", secondary=doctor_specialization, back_populates="specializations")
+    users = relationship("Doctor", secondary=doctor_specialization, back_populates="specializations")

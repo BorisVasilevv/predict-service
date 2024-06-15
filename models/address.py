@@ -15,4 +15,4 @@ class Address(Base):
     zip_code = Column(String(10), nullable=False)
 
     # Связь с таблицей докторов
-    doctor = relationship("Doctor", uselist=False, back_populates="address")
+    user = relationship("User", uselist=False, back_populates="address")

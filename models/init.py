@@ -1,4 +1,3 @@
-from models.doctor import Doctor
 from models.user import User
 from models.examination import Examination
 from models.role import Role
