@@ -15,8 +15,8 @@ from auth.role_required import role_required
 from config.environment import secret_key
 from db_function.doctor_function import add_doctor, delete_doctor_by_id, get_all_doctors, get_doctor_by_id, \
     update_doctor
-from db_function.email_function import send_confirmation_email
-from db_function.specialization_function import get_all_specializations, get_specializations_by_doctor_id
+from db_function.email_function import send_confirmation_email, confirm_pending_user
+from db_function.specialization_function import get_all_specializations, get_specializations_by_user_id
 from db_function.user_function import authenticate_user, create_pending_user, get_all_users, assign_role_to_user, \
     get_all_roles, remove_role_from_user
 from models.base import Session
@@ -90,28 +90,38 @@ async def register():
         username = data['username']
         password = data['password']
         email = data['email']
+        first_name = data['first_name']
+        last_name = data['last_name']
+        patronymic = data.get('patronymic')
+        phone_number = data['phone_number']
+        street = data['street']
+        house = data['house']
+        flat = data.get('flat')
+        city = data['city']
+        region = data.get('region')
+        zip_code = data['zip_code']
+        specializations = data.getlist('specializations')
 
         try:
-            token = create_pending_user(username, password, email)
+            token = create_pending_user(
+                username, password, email, first_name, last_name,
+                patronymic, phone_number, street, house, flat, city,
+                region, zip_code, specializations
+            )
             await send_confirmation_email(email, token)
             await flash('Пожалуйста, подтвердите вашу регистрацию, перейдя по ссылке в отправленном письме.')
             return await render_template('register.html')
         except ValueError as e:
-            await flash(str(e))
+            await flash(str(e), 'error')
             return await render_template('register.html')
 
-    return await render_template('register.html')
+    all_specializations = get_all_specializations()
+    return await render_template('register.html', all_specializations=all_specializations)
 
 
 @app.route('/confirm/<token>')
 async def confirm_email(token):
-    session = Session()
-    pending_user = session.query(PendingUser).filter_by(token=token).first()
-    if pending_user:
-        new_user = User(username=pending_user.username, password=pending_user.password, email=pending_user.email)
-        session.add(new_user)
-        session.delete(pending_user)
-        session.commit()
+    if confirm_pending_user(token):
         await flash('Ваша учетная запись успешно подтверждена.')
         return redirect(url_for('login'))
     else:
@@ -189,7 +199,7 @@ async def edit_doctor_route(doctor_id):
     if request.method == 'GET':
         doctor = get_doctor_by_id(doctor_id)
         all_specializations = get_all_specializations()
-        doctor_specializations = get_specializations_by_doctor_id(doctor_id)
+        doctor_specializations = get_specializations_by_user_id(doctor_id)
         print(doctor_specializations)
         return await render_template('edit_doctor.html', doctor=doctor, all_specializations=all_specializations, doctor_specializations=doctor_specializations)
 

@@ -4,9 +4,11 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from models.address import Address
 from models.base import Session
 from models.pending_user import PendingUser
 from models.role import Role
+from models.specialization import Specialization
 from models.user import User
 
 
@@ -29,10 +31,35 @@ def user_has_role(user_id, role_name):
         session.close()
 
 
-def create_user(username: str, password: str, email: str):
+def create_user(
+    username: str, password: str, email: str, first_name: str, last_name: str,
+    patronymic: str, phone_number: str, street: str, house: str, flat: str,
+    city: str, region: str, zip_code: str, specializations: list
+):
     hashed_password = generate_password_hash(password)
     session = Session()
-    new_user = User(username=username, password=hashed_password, email=email)
+
+    # Создание записи адреса
+    address = Address(
+        street=street, house=house, flat=flat,
+        city=city, region=region, zip_code=zip_code
+    )
+    session.add(address)
+    session.commit()
+
+    # Создание нового пользователя
+    new_user = User(
+        username=username, password=hashed_password, email=email,
+        first_name=first_name, last_name=last_name, patronymic=patronymic,
+        phone_number=phone_number, address_id=address.id
+    )
+
+    # Добавление специализаций
+    if specializations:
+        for spec_id in specializations:
+            specialization = session.query(Specialization).get(spec_id)
+            new_user.specializations.append(specialization)
+
     try:
         session.add(new_user)
         session.commit()
@@ -43,7 +70,11 @@ def create_user(username: str, password: str, email: str):
         session.close()
 
 
-def create_pending_user(username: str, password: str, email: str):
+def create_pending_user(
+    username: str, password: str, email: str, first_name: str, last_name: str,
+    patronymic: str, phone_number: str, street: str, house: str, flat: str,
+    city: str, region: str, zip_code: str, specializations: list
+):
     session = Session()
 
     # Проверка на наличие пользователя с таким именем или почтой
@@ -58,13 +89,17 @@ def create_pending_user(username: str, password: str, email: str):
     hashed_password = generate_password_hash(password)
     token = secrets.token_urlsafe(16)  # Создаем уникальный токен
 
-    new_pending_user = PendingUser(username=username, password=hashed_password, email=email, token=token)
+    new_pending_user = PendingUser(
+        username=username, password=hashed_password, email=email, token=token,
+        first_name=first_name, last_name=last_name, patronymic=patronymic,
+        phone_number=phone_number, street=street, house=house, flat=flat,
+        city=city, region=region, zip_code=zip_code
+    )
 
     try:
         session.add(new_pending_user)
         session.commit()
     except IntegrityError as e:
-        print(e)
         session.rollback()
         raise ValueError("Ошибка при создании пользователя.")
     finally:
@@ -119,3 +154,34 @@ def get_all_roles():
         return roles
     finally:
         session.close()
+
+
+def create_address(session, street, house, flat, city, region, zip_code):
+    new_address = Address(
+        street=street,
+        house=house,
+        flat=flat,
+        city=city,
+        region=region,
+        zip_code=zip_code
+    )
+    session.add(new_address)
+    session.commit()
+    return new_address.id
+
+
+def create_user_from_pending(session, pending_user, address_id):
+    new_user = User(
+        username=pending_user.username,
+        password=pending_user.password,
+        email=pending_user.email,
+        first_name=pending_user.first_name,
+        last_name=pending_user.last_name,
+        patronymic=pending_user.patronymic,
+        phone_number=pending_user.phone_number,
+        address_id=address_id
+    )
+    new_user.specializations.extend(pending_user.specializations)
+    session.add(new_user)
+    session.delete(pending_user)
+    session.commit()

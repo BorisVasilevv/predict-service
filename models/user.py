@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 
-from models.association import doctor_specialization
+from models.user_specialization import user_specialization
 from models.base import Base
 from models.role import Role
 
@@ -24,6 +24,6 @@ class User(Base):
     address = relationship("Address", back_populates="user")
 
     # Связь с таблицей специализаций
-    specializations = relationship("Specialization", secondary=doctor_specialization, back_populates="users")
+    specializations = relationship("Specialization", secondary=user_specialization, back_populates="users")
 
     role = relationship("Role", back_populates="users")

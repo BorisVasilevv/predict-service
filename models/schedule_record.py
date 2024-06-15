@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship
 
 from .address import Address
 from .base import Base
-from .association import doctor_specialization
+from .user_specialization import user_specialization
 
 
 class ScheduleRecord(Base):

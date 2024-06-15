@@ -1,6 +1,6 @@
 from models.base import Session
-from models.doctor import Doctor
 from models.specialization import Specialization
+from models.user import User
 
 
 def get_all_specializations():
@@ -12,12 +12,12 @@ def get_all_specializations():
         session.close()
 
 
-def get_specializations_by_doctor_id(doctor_id):
+def get_specializations_by_user_id(doctor_id):
     session = Session()
 
     try:
         # Находим доктора по его ID
-        doctor = session.query(Doctor).filter_by(id=doctor_id).first()
+        doctor = session.query(User).filter_by(id=doctor_id).first()
         if doctor:
             # Если доктор найден, возвращаем ID его специализаций
             return [specialization.id for specialization in doctor.specializations]

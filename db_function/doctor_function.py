@@ -2,7 +2,6 @@ from sqlalchemy.orm import joinedload
 
 from models.address import Address
 from models.base import Session
-from models.doctor import Doctor
 from models.specialization import Specialization
 
 

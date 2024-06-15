@@ -44,6 +44,43 @@
         <label for="password">Пароль:</label>
         <input type="password" id="password" name="password" required>
         <br>
+        <label for="first_name">Имя:</label><br>
+        <input type="text" id="first_name" name="first_name" required><br><br>
+
+        <label for="last_name">Фамилия:</label><br>
+        <input type="text" id="last_name" name="last_name" required><br><br>
+
+        <label for="patronymic">Отчество:</label><br>
+        <input type="text" id="patronymic" name="patronymic"><br><br>
+
+        <label for="phone_number">Номер телефона:</label><br>
+        <input type="tel" id="phone_number" name="phone_number" required><br><br>
+
+        <fieldset>
+            <legend>Специализации:</legend>
+            {% for specialization in all_specializations %}
+                <input type="checkbox" id="specialization{{ specialization.id }}" name="specializations" value="{{ specialization.id }}">
+                <label for="specialization{{ specialization.id }}">{{ specialization.name }}</label><br>
+            {% endfor %}
+        </fieldset>
+
+        <label for="street">Улица:</label><br>
+        <input type="text" id="street" name="street" required><br><br>
+
+        <label for="house">Дом:</label><br>
+        <input type="text" id="house" name="house" required><br><br>
+
+        <label for="flat">Квартира:</label><br>
+        <input type="text" id="flat" name="flat"><br><br>
+
+        <label for="city">Город:</label><br>
+        <input type="text" id="city" name="city" required><br><br>
+
+        <label for="region">Регион:</label><br>
+        <input type="text" id="region" name="region"><br><br>
+
+        <label for="zip_code">Почтовый индекс:</label><br>
+        <input type="text" id="zip_code" name="zip_code" required><br><br>
         <button type="submit">Зарегистрироваться</button>
     </form>
 
