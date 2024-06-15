@@ -4,6 +4,7 @@ from models.base import Base
 from models.association import doctor_specialization
 from models.examination_type import ExaminationType
 
+
 class Specialization(Base):
     __tablename__ = 'specialization'
 
