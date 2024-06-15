@@ -4,8 +4,10 @@ import aiosmtplib
 from quart import url_for
 
 from config.environment import gmail_address, gmail_password
+from db_function.user_function import create_address, create_user_from_pending
 from models.base import Session
 from models.email_token import EmailToken
+from models.pending_user import PendingUser
 from models.user import User
 
 
@@ -38,3 +40,17 @@ def verify_token(token: str):
             return True
     session.close()
     return False
+
+
+def confirm_pending_user(token):
+    session = Session()
+    pending_user = session.query(PendingUser).filter_by(token=token).first()
+    if pending_user:
+        address_id = create_address(
+            session, pending_user.street, pending_user.house, pending_user.flat,
+            pending_user.city, pending_user.region, pending_user.zip_code
+        )
+        create_user_from_pending(session, pending_user, address_id)
+        return True
+    else:
+        return False
