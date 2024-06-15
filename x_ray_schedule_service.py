@@ -162,6 +162,7 @@ async def delete_user(user_id):
 
 
 @app.route('/edit_user/<int:user_id>', methods=['GET', 'PUT'])
+@role_required('hr officer')
 async def edit_user_route(user_id):
     if request.method == 'GET':
         user = get_user_by_id(user_id)
