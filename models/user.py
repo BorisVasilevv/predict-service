@@ -19,6 +19,7 @@ class User(Base):
     first_name = Column(String(50), nullable=False)
     phone_number = Column(String(12), nullable=False)
     address_id = Column(Integer, ForeignKey('address.id'))
+    confirmation_code = Column(String(50), nullable=True)
 
     # Связь с таблицей адресов
     address = relationship("Address", back_populates="user")

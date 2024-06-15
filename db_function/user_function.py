@@ -254,3 +254,35 @@ def create_user_from_pending(session, pending_user, address_id):
     session.add(new_user)
     session.delete(pending_user)
     session.commit()
+
+
+def get_user_by_email(email: str):
+    session = Session()
+    try:
+        user = session.query(User).filter_by(email=email).first()
+        return user
+    finally:
+        session.close()
+
+
+def update_user_password(email: str, new_password: str):
+    session = Session()
+    try:
+        user = session.query(User).filter_by(email=email).first()
+        if user:
+            user.password = generate_password_hash(new_password)
+            user.confirmation_code = None  # Удаляем код подтверждения после использования
+            session.commit()
+    finally:
+        session.close()
+
+
+def save_confirmation_code(email: str, confirmation_code: str):
+    session = Session()
+    try:
+        user = session.query(User).filter_by(email=email).first()
+        if user:
+            user.confirmation_code = confirmation_code
+            session.commit()
+    finally:
+        session.close()

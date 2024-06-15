@@ -13,7 +13,7 @@ from models.user import User
 
 async def send_confirmation_email(email, token):
     message = EmailMessage()
-    message["From"] = gmail_address  # Замените на ваш Gmail-адрес
+    message["From"] = gmail_address
     message["To"] = email
     message["Subject"] = "Код подтверждения регистрации"
     message.set_content(f"Пожалуйста, подтвердите вашу регистрацию, перейдя по следующей ссылке: {url_for('confirm_email', token=token, _external=True)}")
@@ -54,3 +54,20 @@ def confirm_pending_user(token):
         return True
     else:
         return False
+
+
+async def send_reset_password_email(email, confirmation_code):
+    message = EmailMessage()
+    message["From"] = gmail_address
+    message["To"] = email
+    message["Subject"] = "Код подтверждения восстановления пароля"
+    message.set_content(f"Ваш код подтверждения: {confirmation_code}")
+
+    await aiosmtplib.send(
+        message,
+        hostname="smtp.gmail.com",
+        port=587,
+        start_tls=True,
+        username=gmail_address,
+        password=gmail_password
+    )
