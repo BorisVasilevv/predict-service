@@ -1,3 +1,5 @@
+from sqlalchemy.orm import joinedload
+
 from models.base import Session
 from models.specialization import Specialization
 from models.user import User
@@ -12,17 +14,13 @@ def get_all_specializations():
         session.close()
 
 
-def get_specializations_by_user_id(doctor_id):
+def get_specializations_by_user_id(user_id):
     session = Session()
-
     try:
-        # Находим доктора по его ID
-        doctor = session.query(User).filter_by(id=doctor_id).first()
-        if doctor:
-            # Если доктор найден, возвращаем ID его специализаций
-            return [specialization.id for specialization in doctor.specializations]
-        else:
-            # Если доктор не найден, возвращаем пустой список
-            return []
+        user = session.query(User).options(joinedload(User.specializations)).get(user_id)
+        return [specialization.id for specialization in user.specializations]
+    except Exception as e:
+        session.rollback()
+        raise e
     finally:
         session.close()

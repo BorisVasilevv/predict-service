@@ -13,15 +13,10 @@ from logging import INFO
 from auth.CustomUserAuth import CustomAuthUser
 from auth.role_required import role_required
 from config.environment import secret_key
-from db_function.doctor_function import add_doctor, delete_doctor_by_id, get_all_doctors, get_doctor_by_id, \
-    update_doctor
 from db_function.email_function import send_confirmation_email, confirm_pending_user
 from db_function.specialization_function import get_all_specializations, get_specializations_by_user_id
 from db_function.user_function import authenticate_user, create_pending_user, get_all_users, assign_role_to_user, \
-    get_all_roles, remove_role_from_user
-from models.base import Session
-from models.pending_user import PendingUser
-from models.user import User
+    get_all_roles, remove_role_from_user, delete_user_by_id, get_user_by_id, update_user
 
 app = Quart(__name__, template_folder='view/templates')
 quart_auth = QuartAuth(app)
@@ -154,62 +149,37 @@ async def logout():
     return jsonify({"message": "Logout successful"}), 200
 
 
-@app.route('/add_doctor', methods=['POST', 'GET'])
-@role_required('admin')
-async def add_doctor_route():
-    if request.method == 'GET':
-        all_specializations = get_all_specializations()
-        return await render_template('add_doctor.html', all_specializations=all_specializations)
-
-    if request.method == 'POST':
-        try:
-            data = await request.get_json()
-            result = add_doctor(data)
-            if 'error' in result:
-                logger.error(result)
-                return jsonify(result), 400
-            return jsonify(result), 201
-        except Exception as e:
-            logger.error(str(e))
-            return jsonify({'error': str(e)}), 400
-
-
-@app.route('/delete_doctor/<int:doctor_id>', methods=['DELETE'])
-async def delete_doctor(doctor_id):
+@app.route('/delete_user/<int:user_id>', methods=['POST'])
+async def delete_user(user_id):
     try:
-        result = delete_doctor_by_id(doctor_id)
+        result = delete_user_by_id(user_id)
         if result:
-            return jsonify({"message": "Doctor deleted successfully"}), 200
+            return jsonify({"message": "User deleted successfully"}), 200
         else:
-            logger.error("Doctor not found")
-            return jsonify({"message": "Doctor not found"}), 404
+            return jsonify({"message": "User not found"}), 404
     except Exception as e:
-        logger.error(f"An error occurred: {str(e)}")
         return jsonify({"message": f"An error occurred: {str(e)}"}), 500
 
 
-@app.route('/doctors', methods=['GET'])
-async def list_doctors():
-    doctors = get_all_doctors()
-    return await render_template('doctors.html', doctors=doctors)
-
-
-@app.route('/edit_doctor/<int:doctor_id>', methods=['GET', 'PUT'])
-async def edit_doctor_route(doctor_id):
+@app.route('/edit_user/<int:user_id>', methods=['GET', 'PUT'])
+async def edit_user_route(user_id):
     if request.method == 'GET':
-        doctor = get_doctor_by_id(doctor_id)
+        user = get_user_by_id(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
         all_specializations = get_all_specializations()
-        doctor_specializations = get_specializations_by_user_id(doctor_id)
-        print(doctor_specializations)
-        return await render_template('edit_doctor.html', doctor=doctor, all_specializations=all_specializations, doctor_specializations=doctor_specializations)
+        user_specializations = get_specializations_by_user_id(user_id)
+        return await render_template('edit_user.html', user=user, all_specializations=all_specializations,
+                                     user_specializations=user_specializations)
 
     if request.method == 'PUT':
         data = await request.get_json()
         try:
-            result = await update_doctor(doctor_id, data)
+            result = update_user(user_id, data)
             return jsonify(result), 200
         except Exception as e:
-            return jsonify({"error": str(e)}), 400
+            return jsonify({'error': str(e)}), 400
 
 
 if __name__ == '__main__':

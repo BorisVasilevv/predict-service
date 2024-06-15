@@ -12,6 +12,75 @@ from models.specialization import Specialization
 from models.user import User
 
 
+def delete_user_by_id(user_id: int):
+    session = Session()
+    try:
+        user = session.query(User).filter(User.id == user_id).first()
+        if user:
+            address = session.query(Address).filter(Address.id == user.address_id).first()
+            if address:
+                session.delete(address)  # Удаление адреса пользователя
+            session.delete(user)  # Удаление самого пользователя
+            session.commit()
+            return True
+        else:
+            return False
+    except Exception as e:
+        session.rollback()
+        raise e
+    finally:
+        session.close()
+
+
+def get_user_by_id(user_id):
+    session = Session()
+    try:
+        user = session.query(User).options(joinedload(User.address), joinedload(User.specializations)).get(user_id)
+        return user
+    except Exception as e:
+        session.rollback()
+        raise e
+    finally:
+        session.close()
+
+
+def update_user(user_id, data):
+    session = Session()
+    try:
+        user = session.query(User).options(joinedload(User.address)).get(user_id)
+        if not user:
+            return {'error': 'User not found'}
+
+        user.first_name = data['first_name']
+        user.last_name = data['last_name']
+        user.patronymic = data.get('patronymic')
+        user.phone_number = data['phone_number']
+        user.email = data['email']
+
+        # Обновление специализаций
+        specializations = data['specializations']
+        specialization_objects = session.query(Specialization).filter(Specialization.id.in_(specializations)).all()
+        user.specializations = specialization_objects
+
+        # Обновление адреса
+        address_data = data['address']
+        address = user.address
+        address.street = address_data['street']
+        address.house = address_data['house']
+        address.flat = address_data['flat']
+        address.city = address_data['city']
+        address.region = address_data['region']
+        address.zip_code = address_data['zip_code']
+
+        session.commit()
+        return {'message': 'User updated successfully'}
+    except Exception as e:
+        session.rollback()
+        raise e
+    finally:
+        session.close()
+
+
 def authenticate_user(username, password):
     session = Session()
     user = session.query(User).filter_by(username=username).first()
