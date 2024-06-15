@@ -17,7 +17,8 @@ from db_function.doctor_function import add_doctor, delete_doctor_by_id, get_all
     update_doctor
 from db_function.email_function import send_confirmation_email
 from db_function.specialization_function import get_all_specializations, get_specializations_by_doctor_id
-from db_function.user_function import authenticate_user, create_pending_user
+from db_function.user_function import authenticate_user, create_pending_user, get_all_users, assign_role_to_user, \
+    get_all_roles, remove_role_from_user
 from models.base import Session
 from models.pending_user import PendingUser
 from models.user import User
@@ -46,6 +47,40 @@ app = cors(
     allow_methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"],  # Разрешенные методы
     allow_headers=["Content-Type", "Authorization"],  # Разрешенные заголовки
 )
+
+
+@app.route('/users')
+async def list_users():
+    users = get_all_users()
+    roles = get_all_roles()
+    return await render_template('users.html', users=users, roles=roles)
+
+
+@app.post('/assign_role')
+async def assign_role():
+    data = await request.form
+    user_id = data.get('user_id')
+    role_name = data.get('role')
+
+    try:
+        assign_role_to_user(int(user_id), role_name)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
+    return redirect(url_for('list_users'))
+
+
+@app.post('/remove_role')
+async def remove_role():
+    data = await request.form
+    user_id = data.get('user_id')
+
+    try:
+        remove_role_from_user(int(user_id))
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
+    return redirect(url_for('list_users'))
 
 
 @app.route('/register', methods=['GET', 'POST'])

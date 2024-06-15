@@ -1,10 +1,12 @@
 import secrets
 
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import joinedload
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from models.base import Session
 from models.pending_user import PendingUser
+from models.role import Role
 from models.user import User
 
 
@@ -69,3 +71,51 @@ def create_pending_user(username: str, password: str, email: str):
         session.close()
 
     return token
+
+
+def assign_role_to_user(user_id: int, role_name: str):
+    session = Session()
+    try:
+        user = session.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise ValueError("User not found")
+
+        role = session.query(Role).filter(Role.name == role_name).first()
+        if not role:
+            raise ValueError("Role not found")
+
+        user.role = role
+        session.commit()
+    finally:
+        session.close()
+
+
+def remove_role_from_user(user_id: int):
+    session = Session()
+    try:
+        user = session.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise ValueError("User not found")
+
+        user.role = None
+        session.commit()
+    finally:
+        session.close()
+
+
+def get_all_users():
+    session = Session()
+    try:
+        users = session.query(User).options(joinedload(User.role)).all()
+        return users
+    finally:
+        session.close()
+
+
+def get_all_roles():
+    session = Session()
+    try:
+        roles = session.query(Role).all()
+        return roles
+    finally:
+        session.close()

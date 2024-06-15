@@ -15,6 +15,9 @@ class Doctor(Base):
     phone_number = Column(String(12), nullable=False)
     email = Column(String(50), nullable=True)
     address_id = Column(Integer, ForeignKey('address.id'))
+    role_id = Column(Integer, ForeignKey('role.id'), nullable=True)
+
+    user = relationship("User", back_populates="doctor")
 
     # Связь с таблицей адресов
     address = relationship("Address", back_populates="doctor")

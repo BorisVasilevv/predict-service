@@ -1,7 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from models.base import Base
-from models.role import Role
 
 
 class User(Base):
@@ -14,3 +13,5 @@ class User(Base):
     role_id = Column(Integer, ForeignKey('role.id'), nullable=True)
 
     role = relationship("Role", back_populates="users")
+
+    doctor = relationship("Doctor", back_populates="user")
