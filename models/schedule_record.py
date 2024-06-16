@@ -3,9 +3,9 @@ from sqlalchemy.orm import relationship
 from models.base import Base
 from models.examination import Examination
 
-from .address import Address
-from .base import Base
-from .user_specialization import user_specialization
+from models.address import Address
+from models.base import Base
+from models.user_specialization import user_specialization
 
 class ScheduleRecord(Base):
     __tablename__ = 'schedule_record'
