@@ -2,8 +2,8 @@ import asyncio
 import secrets
 
 from quart import Quart, request, jsonify, render_template, redirect, url_for, flash
-from quart_auth import QuartAuth, AuthUser, login_user, logout_user, login_required, current_user
-from quart_cors import cors, route_cors
+from quart_auth import QuartAuth, login_user, logout_user, login_required
+from quart_cors import cors
 from hypercorn.config import Config
 from hypercorn.asyncio import serve
 
@@ -18,8 +18,7 @@ from db_function.specialization_function import get_all_specializations, get_spe
 from db_function.user_function import authenticate_user, create_pending_user, get_all_users, assign_role_to_user, \
     get_all_roles, remove_role_from_user, delete_user_by_id, get_user_by_id, update_user, get_user_by_email, \
     update_user_password, save_confirmation_code
-from models.base import Session
-from models.user import User
+
 
 app = Quart(__name__, template_folder='view/templates')
 quart_auth = QuartAuth(app)
@@ -81,7 +80,7 @@ async def remove_role():
     return redirect(url_for('list_users'))
 
 
-@app.route('/register', methods=['GET', 'POST'])
+@app.route('/registration', methods=['GET', 'POST'])
 async def register():
     if request.method == 'POST':
         data = await request.form
@@ -108,13 +107,13 @@ async def register():
             )
             await send_confirmation_email(email, token)
             await flash('Пожалуйста, подтвердите вашу регистрацию, перейдя по ссылке в отправленном письме.')
-            return await render_template('register.html')
+            return await render_template('registration.html')
         except ValueError as e:
             await flash(str(e), 'error')
-            return await render_template('register.html')
+            return await render_template('registration.html')
 
     all_specializations = get_all_specializations()
-    return await render_template('register.html', all_specializations=all_specializations)
+    return await render_template('registration.html', all_specializations=all_specializations)
 
 
 @app.route('/confirm/<token>')
