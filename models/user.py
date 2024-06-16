@@ -3,7 +3,6 @@ from sqlalchemy.orm import relationship
 
 from models.user_specialization import user_specialization
 from models.base import Base
-from models.role import Role
 
 
 class User(Base):
