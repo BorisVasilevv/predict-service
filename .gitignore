@@ -167,3 +167,5 @@ config/environment.py
 /migration/alembic/versions
 
 compose/mysql_data/
+
+models/data_bd_loader/

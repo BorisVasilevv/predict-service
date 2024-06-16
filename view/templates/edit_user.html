@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit User</title>
+</head>
+<body>
+    <h1>Edit User</h1>
+    <form id="edit-user-form">
+        <label for="first_name">First Name:</label><br>
+        <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}" required><br><br>
+
+        <label for="last_name">Last Name:</label><br>
+        <input type="text" id="last_name" name="last_name" value="{{ user.last_name }}" required><br><br>
+
+        <label for="patronymic">Patronymic:</label><br>
+        <input type="text" id="patronymic" name="patronymic" value="{{ user.patronymic }}"><br><br>
+
+        <label for="phone_number">Phone Number:</label><br>
+        <input type="tel" id="phone_number" name="phone_number" value="{{ user.phone_number }}" required><br><br>
+
+        <label for="email">Email:</label><br>
+        <input type="email" id="email" name="email" value="{{ user.email }}" required><br><br>
+
+        <fieldset>
+            <legend>Specializations:</legend>
+            {% for specialization in all_specializations %}
+                <input type="checkbox" id="specialization{{ specialization.id }}" name="specializations" value="{{ specialization.id }}"
+                {% if specialization.id in user_specializations %}checked{% endif %}>
+                <label for="specialization{{ specialization.id }}">{{ specialization.name }}</label><br>
+            {% endfor %}
+        </fieldset>
+
+        <label for="street">Street:</label><br>
+        <input type="text" id="street" name="street" value="{{ user.address.street }}" required><br><br>
+
+        <label for="house">House:</label><br>
+        <input type="text" id="house" name="house" value="{{ user.address.house }}" required><br><br>
+
+        <label for="flat">Flat:</label><br>
+        <input type="text" id="flat" name="flat" value="{{ user.address.flat }}"><br><br>
+
+        <label for="city">City:</label><br>
+        <input type="text" id="city" name="city" value="{{ user.address.city }}" required><br><br>
+
+        <label for="region">Region:</label><br>
+        <input type="text" id="region" name="region" value="{{ user.address.region }}"><br><br>
+
+        <label for="zip_code">Zip Code:</label><br>
+        <input type="text" id="zip_code" name="zip_code" value="{{ user.address.zip_code }}" required><br><br>
+
+        <button type="submit">Save</button>
+    </form>
+
+    <script>
+        document.getElementById('edit-user-form').onsubmit = async function(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+
+            const data = {
+                first_name: formData.get('first_name'),
+                last_name: formData.get('last_name'),
+                patronymic: formData.get('patronymic'),
+                phone_number: formData.get('phone_number'),
+                email: formData.get('email'),
+                specializations: Array.from(formData.getAll('specializations')),
+                address: {
+                    street: formData.get('street'),
+                    house: formData.get('house'),
+                    flat: formData.get('flat'),
+                    city: formData.get('city'),
+                    region: formData.get('region'),
+                    zip_code: formData.get('zip_code')
+                }
+            };
+
+            const response = await fetch('{{ url_for("edit_user_route", user_id=user.id) }}', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                alert(result.message);
+                window.location.href = '/users';
+            } else {
+                alert(result.error);
+            }
+        };
+    </script>
+</body>
+</html>
